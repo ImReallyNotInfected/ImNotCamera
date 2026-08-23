@@ -18,7 +18,7 @@
         <dependency>
             <groupId>net.minestom</groupId>
             <artifactId>minestom</artifactId>
-            <version>2026.05.11-1.21.11</version>
+            <version>2026.08.07-26.2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
