@@ -11,12 +11,16 @@ import org.imnotcamera.Camera;
 import org.imnotcamera.EasingDirection;
 import org.imnotcamera.EasingStyle;
 import org.imnotcamera.ImNotCamera;
+import org.imnotcamera.pathing.BlockbenchCameraPath;
+import org.imnotcamera.pathing.CameraPath;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 
 public class Caller {
-    public static void main() {
+    public static void main() throws IOException {
         // Initialization
         MinecraftServer minecraftServer = MinecraftServer.init();
 
@@ -30,6 +34,10 @@ public class Caller {
         //CAMERA
         ImNotCamera.init();
 
+        BlockbenchCameraPath blockbenchCameraPath = BlockbenchCameraPath.getCameraPaths(
+                Path.of("camera.bbmodel").toFile()
+        );
+        CameraPath cameraPath = blockbenchCameraPath.getCameraPath("test");
 
         //END
 
@@ -47,15 +55,17 @@ public class Caller {
             camera.addPlayer(player);
 
             MinecraftServer.getSchedulerManager().buildTask(() -> {
-               camera.interpolate(new Pos(0,45,8,155,65),30, EasingStyle.CUBIC, EasingDirection.OUT)
-                       .thenRun(() -> {
-                           camera.interpolate(new Pos(0,45,8,180,0),20,EasingStyle.QUAD,EasingDirection.OUT).thenRun(() -> {
-                               camera.interpolate(new Pos(0,45,2,180,0),25,EasingStyle.BACK,EasingDirection.IN)
-                                       .thenRun(() -> {
-                                           ImNotCamera.terminateCamera(camera);
-                                       });
-                           });
-                       });
+//               camera.interpolate(new Pos(0,45,8,155,65),30, EasingStyle.CUBIC, EasingDirection.OUT)
+//                       .thenRun(() -> {
+//                           camera.interpolate(new Pos(0,45,8,180,0),20,EasingStyle.QUAD,EasingDirection.OUT).thenRun(() -> {
+//                               camera.interpolate(new Pos(0,45,2,180,0),25,EasingStyle.BACK,EasingDirection.IN)
+//                                       .thenRun(() -> {
+//                                           ImNotCamera.terminateCamera(camera);
+//                                       });
+//                           });
+//                       });
+
+                camera.interpolatePath(cameraPath);
             }).delay(Duration.ofSeconds(6)).schedule();
         });
 

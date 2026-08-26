@@ -6,4 +6,6 @@ public enum EasingStyle {
     CUBIC,
     QUART,
     BACK,
+    STEP,
+    BEZIER
 }

@@ -45,6 +45,12 @@ public class ImNotCamera {
         camera.getPlayerUUIDList().forEach((uuid, cameraData) -> {
             camera.removePlayer(uuid);
         });
+
+        if (camera.currentPathTask!=null) {
+            camera.currentPathTask.cancel();
+        }
+        camera.cameraEntity.remove();
+
     }
 
     public static void init() {
