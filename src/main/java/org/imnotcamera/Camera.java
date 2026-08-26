@@ -77,6 +77,10 @@ public class Camera {
 
         //now set
         playerUUIDList.put(player.getUuid(), cameraData);
+
+        if (!cameraData.getLastInstance().equals(player.getInstance())) {
+            player.setInstance(cameraData.getLastInstance());
+        }
         player.setGameMode(GameMode.SPECTATOR);
         player.spectate(cameraEntity);
     }
