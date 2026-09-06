@@ -36,14 +36,14 @@ public class ImNotCamera {
         return camera;
     }
 
-    public static void terminateCamera(Camera camera) {
+    public static void terminateCamera(Camera camera, boolean teleportBack) {
         camera.dead = true;
 
         cameras.values().remove(camera);
 
         //now quit all players
         camera.getPlayerUUIDList().forEach((uuid, cameraData) -> {
-            camera.removePlayer(uuid);
+            camera.removePlayer(uuid, teleportBack);
         });
 
         if (camera.currentPathTask!=null) {
@@ -53,15 +53,19 @@ public class ImNotCamera {
 
     }
 
+    public static void terminateCamera(Camera camera) {
+        terminateCamera(camera, true);
+    }
+
     public static void init() {
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
 
         globalEventHandler.addListener(PlayerDisconnectEvent.class, event-> {
-           var player = event.getPlayer();
-           Camera camera = getCameraFromPlayer(player);
-           if (camera!=null) {
-               camera.getPlayerUUIDList().remove(player.getUuid());
-           }
+            var player = event.getPlayer();
+            Camera camera = getCameraFromPlayer(player);
+            if (camera!=null) {
+                camera.getPlayerUUIDList().remove(player.getUuid());
+            }
         });
     }
 }

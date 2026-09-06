@@ -55,6 +55,15 @@ public class Camera {
     private CameraPath currentPath;
     public Task currentPathTask = null;
 
+    private Instance lastInstance;
+    public Instance getLastInstance() {
+        return lastInstance;
+    }
+
+    public Entity getCameraEntity() {
+        return cameraEntity;
+    }
+
     private Map<UUID, CameraData> playerUUIDList = new ConcurrentHashMap<>();
     public Pos getLastGlobalPos() {
         return lastGlobalPos;
@@ -78,11 +87,17 @@ public class Camera {
         //now set
         playerUUIDList.put(player.getUuid(), cameraData);
 
-        if (!cameraData.getLastInstance().equals(player.getInstance())) {
-            player.setInstance(cameraData.getLastInstance());
+        if (!getLastInstance().equals(player.getInstance())) {
+            player.setInstance(getLastInstance()).thenRun(() -> {
+                if (isDead()) {return;}
+                player.setGameMode(GameMode.SPECTATOR);
+                player.spectate(cameraEntity);
+            });
+        } else {
+            player.setGameMode(GameMode.SPECTATOR);
+            player.spectate(cameraEntity);
         }
-        player.setGameMode(GameMode.SPECTATOR);
-        player.spectate(cameraEntity);
+
     }
 
     public void addPlayer(UUID uuid) {
@@ -92,13 +107,17 @@ public class Camera {
         addPlayer(player);
     }
 
-    public void removePlayer(UUID uuid) {
+    public void removePlayer(UUID uuid, boolean teleportBack) {
         CameraData lastData = playerUUIDList.getOrDefault(uuid,null);
         Player player = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(uuid);
 
         playerUUIDList.remove(uuid);
 
-        if (lastData !=null && player!= null) {
+        if (player != null && player.isOnline()) {
+            player.stopSpectating();
+        }
+
+        if (lastData !=null && player!= null && teleportBack) {
             lastData.getLastInstance().loadChunk(lastData.getLastPos()).thenRun(() -> {
                 if (!player.isOnline()) {return;}
 
@@ -113,8 +132,8 @@ public class Camera {
         }
     }
 
-    public void removePlayer(Player player) {
-        removePlayer(player.getUuid());
+    public void removePlayer(Player player, boolean teleportBack) {
+        removePlayer(player.getUuid(), teleportBack);
     }
 
     //now actual camera stuff
@@ -303,7 +322,7 @@ public class Camera {
                             style
                     );
                 }
-                
+
                 float currentYaw;
                 float currentPitch;
 
@@ -396,10 +415,12 @@ public class Camera {
     public Camera (Instance world, Pos startPos) {
         this.lastGlobalPos = startPos;
         cameraEntity = new Entity(EntityType.BLOCK_DISPLAY);
+        this.lastInstance = world;
 
         cameraEntity.setHasPhysics(false);
         cameraEntity.setNoGravity(true);
 
-        world.loadChunk(startPos).thenRun(() -> cameraEntity.setInstance(world,startPos));
+        cameraEntity.setInstance(world,startPos);
+        //world.loadChunk(startPos).thenRun(() -> cameraEntity.setInstance(world,startPos));
     }
 }
